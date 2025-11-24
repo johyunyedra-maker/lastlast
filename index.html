@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>I'd like to buy...ROUND!</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            /* 배경 이미지 설정: Imgur Direct Link 사용 */
+            background-image: url('https://i.imgur.com/ja989rD.jpg'); 
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            color: #fff;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.8);
+        }
+
+        h1 {
+            color: #ffffff;
+            margin-bottom: 40px;
+            background-color: rgba(0, 0, 0, 0.6);
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 2.5em;
+        }
+
+        #card-container-wrapper {
+            position: relative;
+            width: 550px; 
+            height: 550px; 
+            margin-bottom: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #card-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+        }
+
+        .card {
+            position: absolute;
+            width: 100px; 
+            height: 140px; 
+            background-color: #ffffff; 
+            border: 3px solid #333;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+            transition: transform 0.8s ease-out, box-shadow 0.3s ease-in-out; 
+            cursor: pointer;
+            overflow: hidden;
+        }
+        
+        .card.revealed {
+            border-color: #007bff;
+        }
+
+        .card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 9px;
+            opacity: 0; /* 초기에는 이미지를 숨김 */
+            transition: opacity 0.5s ease-in-out; 
+        }
+        
+        .card.revealed img {
+            opacity: 1; /* 첫 셔플 후 이미지를 보이게 함 */
+        }
+
+        #shuffle-button {
+            padding: 15px 35px;
+            font-size: 1.5em;
+            background-color: #ff9800; 
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            font-weight: bold;
+        }
+
+        #shuffle-button:hover {
+            background-color: #e68900;
+            transform: translateY(-3px);
+        }
+
+        #shuffle-button:active {
+            transform: translateY(0);
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <h1>I'd like to buy...ROUND!</h1>
+    <div id="card-container-wrapper">
+        <div id="card-container">
+        </div>
+    </div>
+    <button id="shuffle-button">카드 섞기 / 이미지 나타내기</button>
+
+    <script>
+        const cardContainer = document.getElementById('card-container');
+        const shuffleButton = document.getElementById('shuffle-button');
+        const numberOfCards = 8;
+        let cards = []; 
+        let isImagesRevealed = false; 
+
+        // 8개의 Imgur 이미지 URL로 직접 수정
+        const imageUrls = [
+            'https://i.imgur.com/m7bAUm0.jpg',
+            'https://i.imgur.com/60Pyrbm.jpg',
+            'https://i.imgur.com/n1sbqV5.jpg',
+            'https://i.imgur.com/XcaTIRh.jpg',
+            'https://i.imgur.com/xFTp6TO.jpg',
+            'https://i.imgur.com/4vizGBz.jpg',
+            'https://i.imgur.com/4uStbzn.jpg',
+            'https://i.imgur.com/SBmnNKg.jpg'
+        ];
+
+        // --- 함수들은 이전 코드와 동일합니다. ---
+        function createCards() {
+            const shuffledImageUrls = [...imageUrls];
+            shuffleArray(shuffledImageUrls); 
+
+            shuffledImageUrls.forEach((url, index) => {
+                const card = document.createElement('div');
+                card.classList.add('card');
+                
+                const img = document.createElement('img');
+                img.alt = `Card ${index + 1}`; 
+                img.setAttribute('data-img-src', url); 
+
+                card.appendChild(img);
+                cardContainer.appendChild(card);
+                cards.push(card);
+            });
+            positionCardsInCircle(cards); 
+        }
+
+        function positionCardsInCircle(elements) {
+            const radius = 250; 
+            const centerX = cardContainer.offsetWidth / 2;
+            const centerY = cardContainer.offsetHeight / 2;
+
+            elements.forEach((card, index) => {
+                const angle = (index / numberOfCards) * 2 * Math.PI; 
+                const x = centerX + radius * Math.cos(angle) - card.offsetWidth / 2;
+                const y = centerY + radius * Math.sin(angle) - card.offsetHeight / 2;
+
+                card.style.left = `${x}px`;
+                card.style.top = `${y}px`;
+                card.style.transform = `rotate(${angle + Math.PI / 2}rad)`; 
+                card.style.zIndex = index; 
+            });
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]]; 
+            }
+        }
+
+        function shuffleCards() {
+            if (!isImagesRevealed) {
+                cards.forEach(card => {
+                    const img = card.querySelector('img');
+                    img.src = img.getAttribute('data-img-src'); 
+                    card.classList.add('revealed'); 
+                });
+                isImagesRevealed = true;
+                shuffleButton.textContent = '카드 섞기'; 
+            }
+            
+            const currentCardsInDOM = Array.from(cardContainer.children);
+            shuffleArray(currentCardsInDOM);
+
+            currentCardsInDOM.forEach(card => cardContainer.appendChild(card));
+
+            positionCardsInCircle(Array.from(cardContainer.children));
+        }
+
+        createCards();
+        shuffleButton.addEventListener('click', shuffleCards);
+        window.addEventListener('resize', () => {
+            positionCardsInCircle(Array.from(cardContainer.children));
+        });
+    </script>
+</body>
+</html>
